@@ -33,7 +33,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-            - name: Build and push
+      - name: Build and push
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -41,4 +41,3 @@ jobs:
           tags: |
             ghcr.io/hemant09453/secure-file-share:latest
             ghcr.io/hemant09453/secure-file-share:${{ github.sha }}
-
