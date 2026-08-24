@@ -1,0 +1,14 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: secure-file-share
+  namespace: secure-file-share
+spec:
+  to:
+    kind: Service
+    name: secure-file-share
+  port:
+    targetPort: 80
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect

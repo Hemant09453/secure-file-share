@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: secure-file-share
+  namespace: secure-file-share
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: secure-file-share
+  template:
+    metadata:
+      labels:
+        app: secure-file-share
+    spec:
+      containers:
+        - name: app
+          image: ghcr.io/YOUR_GITHUB_USERNAME/secure-file-share:latest
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 3000
+          env:
+            - name: PORT
+              value: "3000"
+            - name: STORAGE_DIR
+              value: "/data"
+            - name: ENCRYPTION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: secure-file-share-secret
+                  key: ENCRYPTION_KEY
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          readinessProbe:
+            httpGet:
+              path: /healthz/readiness
+              port: 3000
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /healthz/liveness
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          volumeMounts:
+            - name: data
+              mountPath: /data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: secure-file-share-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: secure-file-share
+  namespace: secure-file-share
+spec:
+  selector:
+    app: secure-file-share
+  ports:
+    - port: 80
+      targetPort: 3000
+      protocol: TCP

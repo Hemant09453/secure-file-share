@@ -1,0 +1,10 @@
+__pycache__/
+*.py[cod]
+*.tmp
+.env
+uploads/
+app_state.json
+.git/
+.github/
+k8s/
+README.md

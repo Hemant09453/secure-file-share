@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Secure File Sharing Vault</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- QR Code Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+  <div class="app-container">
+    <!-- Top Navigation Header -->
+    <header class="top-nav">
+      <div class="logo-brand">
+        <div class="vault-logo">
+          <i class="fa-solid fa-shield-halved"></i>
+          <span>Enterprise Vault</span>
+        </div>
+        <h1>Secure File Sharing Vault</h1>
+      </div>
+      <div class="system-status">
+        <div class="status-indicator online"></div>
+        <span class="status-text">Vault Status: <strong>Encrypted & Active</strong></span>
+        
+        <!-- Logged In User Chip & Sign Out -->
+        <div id="user-header-chip" class="user-profile-chip" style="display: none;">
+          <i class="fa-solid fa-circle-user"></i> <span id="header-username">User</span>
+          <button class="btn btn-sm btn-outline logout-btn" onclick="handleLogout()"><i class="fa-solid fa-right-from-bracket"></i> Sign Out</button>
+        </div>
+
+      </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+
+      <!-- Authentication Screen (Shows before accessing website content) -->
+      <section id="auth-screen" class="panel auth-portal-card">
+        <div class="auth-header">
+          <div class="portal-icon"><i class="fa-solid fa-shield-cat"></i></div>
+          <h2>Authentication Required</h2>
+          <p>Please sign in or create an account to access the Secure File Share Vault.</p>
+        </div>
+
+        <div class="auth-tabs">
+          <button class="auth-tab-btn active" id="tab-login-btn"><i class="fa-solid fa-right-to-bracket"></i> Sign In</button>
+          <button class="auth-tab-btn" id="tab-signup-btn"><i class="fa-solid fa-user-plus"></i> Create Account</button>
+        </div>
+
+        <!-- Login Form -->
+        <form id="login-form" class="auth-form">
+          <div class="form-group">
+            <label><i class="fa-solid fa-user"></i> Username</label>
+            <input type="text" id="login-username" placeholder="Enter your username" required autocomplete="username">
+          </div>
+          <div class="form-group">
+            <label><i class="fa-solid fa-lock"></i> Password</label>
+            <input type="password" id="login-password" placeholder="Enter your password" required autocomplete="current-password">
+          </div>
+          <button type="submit" class="btn btn-primary btn-block" id="login-btn">
+            <i class="fa-solid fa-right-to-bracket"></i> Sign In to Vault
+          </button>
+        </form>
+
+        <!-- Signup Form -->
+        <form id="signup-form" class="auth-form" style="display: none;">
+          <div class="form-group">
+            <label><i class="fa-solid fa-user"></i> Desired Username</label>
+            <input type="text" id="signup-username" placeholder="Choose a username" required autocomplete="username">
+          </div>
+          <div class="form-group">
+            <label><i class="fa-solid fa-envelope"></i> Email Address</label>
+            <input type="email" id="signup-email" placeholder="name@enterprise.com" required autocomplete="email">
+          </div>
+          <div class="form-group">
+            <label><i class="fa-solid fa-lock"></i> Password</label>
+            <input type="password" id="signup-password" placeholder="Create a strong password" required autocomplete="new-password">
+          </div>
+          <button type="submit" class="btn btn-primary btn-block" id="signup-btn">
+            <i class="fa-solid fa-user-check"></i> Create Account & Sign In
+          </button>
+        </form>
+      </section>
+
+      <!-- Direct Share Link Receiver View (Accessible via share link) -->
+      <section id="share-receiver-card" class="panel share-card-portal" style="display: none;">
+        <div class="share-portal-header">
+          <div class="portal-icon"><i class="fa-solid fa-vault"></i></div>
+          <h2>Encrypted File Received</h2>
+          <p>You have received a secure encrypted file share link. Enter the decryption password to unlock and download your file.</p>
+        </div>
+
+        <div class="share-file-meta-box">
+          <div class="meta-item">
+            <span class="meta-label">Filename</span>
+            <strong id="share-filename">document.pdf</strong>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">File Size</span>
+            <span id="share-filesize">0 KB</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">SHA-256 Checksum</span>
+            <code id="share-checksum">a1b2c3...</code>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Security Scan</span>
+            <span class="scan-tag"><i class="fa-solid fa-shield-check"></i> Passed Knative Scan</span>
+          </div>
+        </div>
+
+        <form id="share-download-form" class="share-decrypt-box">
+          <div class="form-group">
+            <label><i class="fa-solid fa-key"></i> Enter Decryption Password to Unlock</label>
+            <input type="password" id="share-decrypt-password" placeholder="Enter password to decrypt file..." required autocomplete="off">
+          </div>
+          <button type="submit" class="btn btn-primary btn-block" id="share-decrypt-btn">
+            <i class="fa-solid fa-lock-open"></i> Decrypt & Download File
+          </button>
+          <p class="crypto-note"><i class="fa-solid fa-microchip"></i> Decrypted client-side using AES-256-GCM deciphering.</p>
+        </form>
+      </section>
+
+      <!-- Standard Application Dashboard -->
+      <div id="standard-dashboard" style="display: none;">
+        <!-- Dashboard Grid -->
+        <div class="dashboard-grid">
+          <!-- Left Panel: File Upload & Encryption Form -->
+          <section class="panel upload-panel">
+            <div class="panel-header">
+              <h2><i class="fa-solid fa-cloud-arrow-up"></i> Secure Encrypted Upload</h2>
+              <span class="badge badge-primary">TLS 1.3 Edge</span>
+            </div>
+
+            <form id="upload-form" class="dropzone-box">
+              <input type="file" id="file-input" required style="display: none;">
+              <div class="dropzone" id="dropzone" onclick="document.getElementById('file-input').click()">
+                <i class="fa-solid fa-file-shield dropzone-icon"></i>
+                <p class="drop-title">Drag & drop files here or <span>Browse</span></p>
+                <p class="drop-subtitle">AES-256-GCM End-to-End Encryption • Max 50MB</p>
+                <div id="file-preview" class="file-preview" style="display: none;">
+                  <i class="fa-solid fa-file"></i> <span id="preview-name">filename.pdf</span>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label><i class="fa-solid fa-key"></i> Decryption Password (Required for Link Access)</label>
+                  <input type="password" id="upload-password" placeholder="Set password for recipients..." required>
+                </div>
+                <div class="form-group">
+                  <label><i class="fa-solid fa-clock"></i> Link Expiry</label>
+                  <select id="upload-expiry">
+                    <option value="1">1 Hour</option>
+                    <option value="24" selected>24 Hours</option>
+                    <option value="168">7 Days</option>
+                  </select>
+                </div>
+              </div>
+
+              <button type="submit" class="btn btn-primary btn-block" id="upload-btn">
+                <i class="fa-solid fa-lock"></i> Encrypt, Upload & Generate Link / QR
+              </button>
+            </form>
+          </section>
+
+          <!-- Right Panel: PVC Encrypted Files Manager -->
+          <section class="panel files-panel">
+            <div class="panel-header">
+              <h2><i class="fa-solid fa-folder-closed"></i> Active Shared Files</h2>
+              <button class="btn btn-sm btn-outline" id="refresh-btn"><i class="fa-solid fa-rotate"></i> Refresh</button>
+            </div>
+
+            <div class="files-list" id="files-list">
+              <div class="empty-state">
+                <i class="fa-solid fa-box-open"></i>
+                <p>No files uploaded yet. Upload a file to generate a password-protected share link and QR code!</p>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </main>
+
+    <!-- Share Link & QR Code Generated Modal -->
+    <div id="share-modal" class="modal">
+      <div class="modal-content text-center">
+        <h3><i class="fa-solid fa-qrcode"></i> Shareable Link & QR Code</h3>
+        <p>Scan with mobile camera or copy the link below. Recipient will enter decryption password to unlock file.</p>
+        
+        <!-- QR Code Container -->
+        <div class="qr-code-box">
+          <div id="modal-qrcode-canvas"></div>
+          <img id="modal-qrcode-img" src="" alt="QR Code" style="display: none;">
+        </div>
+
+        <div class="share-input-group">
+          <input type="text" id="share-link-input" readonly>
+          <button class="btn btn-primary btn-sm" id="copy-share-btn"><i class="fa-solid fa-copy"></i> Copy Link</button>
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn btn-secondary" onclick="closeShareModal()">Done</button>
+          <button class="btn btn-outline" id="test-share-link-btn">Test Opening Link</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- QR Code Dedicated Viewer Modal -->
+    <div id="qr-viewer-modal" class="modal">
+      <div class="modal-content text-center">
+        <h3 id="qr-modal-title"><i class="fa-solid fa-qrcode"></i> Scan to Download File</h3>
+        <p>Scan this QR code with any smartphone camera to open the secure file decryption page.</p>
+
+        <div class="qr-code-box">
+          <img id="qr-viewer-img" src="" alt="QR Code">
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn btn-secondary btn-block" onclick="closeQrViewerModal()">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Password Modal for Decryption -->
+    <div id="password-modal" class="modal">
+      <div class="modal-content">
+        <h3><i class="fa-solid fa-lock"></i> Enter Decryption Password</h3>
+        <p>This file is protected with AES-256-GCM encryption and requires a password to decrypt.</p>
+        <input type="password" id="modal-password" placeholder="Enter file password">
+        <div class="modal-actions">
+          <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+          <button class="btn btn-primary" id="confirm-download-btn">Decrypt & Download</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
